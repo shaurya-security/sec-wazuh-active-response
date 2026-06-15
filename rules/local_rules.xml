@@ -1,0 +1,23 @@
+<!--
+  local_rules.xml
+  Place at: /var/ossec/etc/rules/local_rules.xml
+
+  Rule 100002 — SSH brute-force correlation
+  ─────────────────────────────────────────
+  Fires when the same source IP triggers rule 5760
+  (sshd authentication failure) 5+ times in 6 minutes.
+
+  Level 12  → activates active response
+  T1110     → Brute Force / Credential Access
+-->
+<group name="aws_custom,">
+  <rule id="100002" level="12" frequency="5" timeframe="360">
+    <if_matched_sid>5760</if_matched_sid>
+    <same_source_ip />
+    <description>SSH brute force: 5+ failures in 6 minutes from $(srcip)</description>
+    <mitre>
+      <id>T1110</id>
+    </mitre>
+    <group>syslog,attacks,authentication_failures</group>
+  </rule>
+</group>
