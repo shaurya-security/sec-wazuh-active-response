@@ -1,12 +1,17 @@
-# Automated SSH Brute-Force Detection and Containment on AWS with Wazuh
+# 🔒 Automated SSH Brute-Force Detection and Containment on AWS with Wazuh
 
-**Stack:** Wazuh 4.14 · Amazon Linux 2 · AWS VPC · iptables  
-**MITRE ATT&CK:** [T1110 — Brute Force](https://attack.mitre.org/techniques/T1110/) · Credential Access  
+![Wazuh](https://img.shields.io/badge/Wazuh-v4.14-005571?style=flat-square)
+![AWS](https://img.shields.io/badge/AWS-VPC-FF9900?style=flat-square&logo=amazonwebservices&logoColor=white)
+![MITRE ATT&CK](https://img.shields.io/badge/MITRE_ATT%26CK-T1110-red?style=flat-square)
+![Status](https://img.shields.io/badge/Status-Complete-success?style=flat-square)
+
+**Stack:** Wazuh 4.14 · Amazon Linux 2 · AWS VPC · iptables
+**MITRE ATT&CK:** [T1110 — Brute Force](https://attack.mitre.org/techniques/T1110/) · Credential Access
 **Date:** June 2026
 
 ---
 
-## Outcome
+## ✅ Outcome
 
 | Stage | Result |
 |---|---|
@@ -21,7 +26,7 @@
 
 ---
 
-## Skills Demonstrated
+## 🧠 Skills Demonstrated
 
 - AWS Networking (VPC, Public/Private Subnets, NAT)
 - Linux Administration
@@ -34,13 +39,13 @@
 
 ---
 
-## Overview
+## 📋 Overview
 
-This project deploys Wazuh on AWS and demonstrates automated threat containment: the moment an SSH brute-force attack crosses a detection threshold, Wazuh fires an active response that blocks the attacker at the network layer — no manual intervention required. The block is temporary and auto-removed after a configurable timeout.
+This project deploys Wazuh on AWS and demonstrates **automated threat containment**: the moment an SSH brute-force attack crosses a detection threshold, Wazuh fires an active response that blocks the attacker at the network layer — no manual intervention required. The block is temporary and auto-removed after a configurable timeout.
 
 ---
 
-## Architecture
+## 🏗️ Architecture
 
 ```
                         Internet
@@ -64,7 +69,7 @@ This project deploys Wazuh on AWS and demonstrates automated threat containment:
 
 ---
 
-## Detection Flow
+## 🔁 Detection Flow
 
 ```
 sshd logs auth failure
@@ -91,7 +96,7 @@ sshd logs auth failure
 
 ---
 
-## Detection Logic
+## 🧩 Detection Logic
 
 ### Custom Correlation Rule
 
@@ -126,7 +131,7 @@ Correlates against Wazuh's built-in rule `5760` (sshd authentication failure). F
 
 ---
 
-## Detection Performance
+## ⏱️ Detection Performance
 
 | Parameter | Value |
 |---|---|
@@ -134,89 +139,93 @@ Correlates against Wazuh's built-in rule `5760` (sshd authentication failure). F
 | Correlation window | 360 seconds |
 | Response execution | < 1 second after threshold crossed |
 | Containment duration | 120 seconds |
-| Auto-recovery | Yes — DROP rule removed at timeout |
+| Auto-recovery | ✅ Yes — DROP rule removed at timeout |
 
 ---
 
-## Evidence
+## 📸 Evidence
 
-### 1. Attack Simulation
+<details open>
+<summary><strong>1. Attack Simulation</strong></summary>
 
 Six sequential SSH failures from `bastion-host` targeting `wazuh-manager`. Each attempt uses a wrong password; sshd logs the failure.
 
 ![Attack simulation](evidence/01-attack-simulation.png)
+</details>
 
----
-
-### 2. Wazuh Dashboard — Alert Confirmed
+<details open>
+<summary><strong>2. Wazuh Dashboard — Alert Confirmed</strong></summary>
 
 Wazuh Discover filtered to `rule.level: 12 to 14`. Single alert: rule.id `100002`, level `12`, srcip `10.0.1.170`, technique `Brute Force`, ATT&CK ID `T1110`.
 
 ![Wazuh dashboard alert](evidence/02-wazuh-dashboard-alert.png)
+</details>
 
----
-
-### 3. Active Response Triggered
+<details open>
+<summary><strong>3. Active Response Triggered</strong></summary>
 
 `/var/ossec/logs/active-responses.log` at the moment rule 100002 fires. Shows `firewall-drop: Starting`, the embedded alert JSON (rule 100002, level 12, T1110), and the prior SSH failure events that built up to the threshold.
 
 ![Active response triggered](evidence/03-active-response-trigger.png)
+</details>
 
----
-
-### 4. iptables Block Inserted and Auto-Removed
+<details open>
+<summary><strong>4. iptables Block Inserted and Auto-Removed</strong></summary>
 
 `iptables-monitor.sh` running in parallel on the manager. Three timestamped snapshots:
 
-- `18:08:13` — INPUT chain empty, no attack yet
-- `18:10:36` — `DROP all -- 10.0.1.170 0.0.0.0/0` inserted after threshold crossed
-- `18:12:37` — chain empty again, 120-second timeout expired, auto-recovered
+| Timestamp | State |
+|---|---|
+| `18:08:13` | INPUT chain empty, no attack yet |
+| `18:10:36` | `DROP all -- 10.0.1.170 0.0.0.0/0` inserted after threshold crossed |
+| `18:12:37` | Chain empty again — 120s timeout expired, auto-recovered |
 
 ![iptables lifecycle](evidence/04-iptables-block-and-removal.png)
+</details>
 
----
-
-### 5. Active Response Lifecycle
+<details open>
+<summary><strong>5. Active Response Lifecycle</strong></summary>
 
 Full sequence in `active-responses.log`: one `Aborted` (Wazuh deduplication rejected a concurrent duplicate invocation), followed by a clean `Starting` → alert processing → `Ended`. Confirms temporary block, not permanent.
 
 ![Active response lifecycle](evidence/05-active-response-lifecycle.png)
+</details>
 
----
-
-### 6. Rule and Active Response Config Written to Disk
+<details open>
+<summary><strong>6. Rule and Active Response Config Written to Disk</strong></summary>
 
 The exact commands used to write the custom rule and active response block into the Wazuh config during bootstrap.
 
 ![Config written](evidence/06-rule-and-ar-config.png)
+</details>
 
----
-
-### 7. iptables DROP Confirmed (Earlier Test Run)
+<details open>
+<summary><strong>7. iptables DROP Confirmed (Earlier Test Run)</strong></summary>
 
 `watch -n1 iptables -L INPUT -n --line-numbers` on the manager during a prior test. Shows `DROP all -- 10.0.1.67 0.0.0.0/0` inserted in real time.
 
 ![Drop confirmed](evidence/07-iptables-drop-confirmed.png)
+</details>
 
 ---
 
-## Challenges
+## 🧗 Challenges
 
-**PasswordAuthentication disabled by default**  
-Amazon Linux 2 disables password auth in sshd out of the box. The attack script reached the network layer but sshd rejected connections before any password was exchanged — so no `Failed password` entries appeared in logs. Fixed by enabling `PasswordAuthentication yes` in `sshd_config`.
+> **PasswordAuthentication disabled by default**
+> Amazon Linux 2 disables password auth in sshd out of the box. The attack script reached the network layer but sshd rejected connections before any password was exchanged — so no `Failed password` entries appeared in logs. Fixed by enabling `PasswordAuthentication yes` in `sshd_config`.
 
-**Active response aborting on concurrent invocations**  
-Parallel SSH attempts fired simultaneously triggered multiple threshold crossings for the same IP at nearly the same timestamp. Wazuh's `check_keys` deduplication aborted the second invocation to avoid double-blocking. Fix: sequential attempts with `sleep 1` between each, producing one clean threshold crossing and one active response invocation.
+> **Active response aborting on concurrent invocations**
+> Parallel SSH attempts fired simultaneously triggered multiple threshold crossings for the same IP at nearly the same timestamp. Wazuh's `check_keys` deduplication aborted the second invocation to avoid double-blocking. **Fix:** sequential attempts with `sleep 1` between each, producing one clean threshold crossing and one active response invocation.
 
-**iptables-services failing to start**  
-The default `/etc/sysconfig/iptables` shipped with `iptables-services` on AL2 uses `-m state`, which is not available on the AL2 kernel — only `conntrack` is. Fix: flush the ruleset, save (overwrites the broken default file with a clean empty ruleset), then start the service.
+> **iptables-services failing to start**
+> The default `/etc/sysconfig/iptables` shipped with `iptables-services` on AL2 uses `-m state`, which is not available on the AL2 kernel — only `conntrack` is. **Fix:** flush the ruleset, save (overwrites the broken default file with a clean empty ruleset), then start the service.
 
-**firewalld conflict**  
-Enabling `iptables.service` automatically stops `firewalld`. They cannot run simultaneously. Since `firewall-drop` manipulates iptables directly, firewalld being absent is required. Expected behavior, not a misconfiguration.
+> **firewalld conflict**
+> Enabling `iptables.service` automatically stops `firewalld`. They cannot run simultaneously. Since `firewall-drop` manipulates iptables directly, firewalld being absent is required. Expected behavior, not a misconfiguration.
 
 ---
 
-## Lessons Learned
+## 💡 Lessons Learned
 
 - Active response failures often originate earlier in the pipeline than expected.
 - Validate log generation before debugging correlation rules.
@@ -225,7 +234,7 @@ Enabling `iptables.service` automatically stops `firewalld`. They cannot run sim
 
 ---
 
-## Reproduction
+## 🔄 Reproduction
 
 ### Prerequisites
 
@@ -250,11 +259,11 @@ bash scripts/brute-force-sim.sh
 # https://localhost:8443 → Discover → filter rule.level: 12 to 14
 ```
 
-Full cycle from clean instances to confirmed block takes under 15 minutes.
+> ⏱️ Full cycle from clean instances to confirmed block takes **under 15 minutes**.
 
 ---
 
-## Repository Structure
+## 🗂️ Repository Structure
 
 ```
 ssh-bruteforce-autoblock/
