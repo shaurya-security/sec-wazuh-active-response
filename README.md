@@ -1,9 +1,22 @@
-# 🔒 Automated SSH Brute-Force Detection and Containment on AWS with Wazuh
+<p align="center">
+  <img src="evidence/banner_wazuh_active_response.png" alt="Automated SSH Brute-Force Detection and Containment on AWS with Wazuh" width="100%">
+</p>
 
-![Wazuh](https://img.shields.io/badge/Wazuh-v4.14-005571?style=flat-square)
-![AWS](https://img.shields.io/badge/AWS-VPC-FF9900?style=flat-square&logo=amazonwebservices&logoColor=white)
-![MITRE ATT&CK](https://img.shields.io/badge/MITRE_ATT%26CK-T1110-red?style=flat-square)
-![Status](https://img.shields.io/badge/Status-Complete-success?style=flat-square)
+<h1 align="center">Automated SSH Brute-Force Detection and Containment on AWS with Wazuh</h1>
+
+<p align="center">
+A hands-on detection engineering project demonstrating automated SSH brute-force detection and containment on AWS using Wazuh. The lab correlates authentication failures, maps alerts to MITRE ATT&amp;CK, triggers automated firewall responses, and validates end-to-end incident detection and recovery.
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Wazuh-v4.14-005571?style=flat-square" alt="Wazuh">
+  <img src="https://img.shields.io/badge/AWS-VPC-FF9900?style=flat-square&logo=amazonaws&logoColor=white" alt="AWS">
+  <img src="https://img.shields.io/badge/MITRE_ATT%26CK-T1110-red?style=flat-square" alt="MITRE ATT&amp;CK">
+  <img src="https://img.shields.io/badge/Active_Response-firewall--drop-orange?style=flat-square" alt="Active Response">
+  <img src="https://img.shields.io/badge/Status-Complete-success?style=flat-square" alt="Status">
+</p>
+
+---
 
 **Stack:** Wazuh 4.14 · Amazon Linux 2 · AWS VPC · iptables
 **MITRE ATT&CK:** [T1110 — Brute Force](https://attack.mitre.org/techniques/T1110/) · Credential Access
